@@ -1,0 +1,311 @@
+import { useState, useRef } from 'react';
+import { uploadCandidate, createCandidate, Candidate, ParsedResume } from '../lib/api';
+import toast from 'react-hot-toast';
+
+interface CandidateUploadProps {
+  onSuccess: (candidate: Candidate) => void;
+  onClose: () => void;
+}
+
+const JOB_TYPE_OPTIONS = ['engineering', 'sales', 'marketing', 'design', 'product', 'operations', 'finance', 'data', 'hr', 'other'];
+const SENIORITY_OPTIONS = ['junior', 'mid', 'senior', 'lead', 'director', 'vp', 'c-level'];
+
+const defaultForm = {
+  name: '',
+  email: '',
+  phone: '',
+  linkedin_url: '',
+  headline: '',
+  skills: '',
+  experience_years: '',
+  job_types: [] as string[],
+  seniority: '',
+  location: '',
+  notes: '',
+  expires_at: '',
+  resume_path: '',
+  resume_text: '',
+};
+
+export default function CandidateUpload({ onSuccess, onClose }: CandidateUploadProps) {
+  const [mode, setMode] = useState<'choose' | 'upload' | 'manual'>('choose');
+  const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState(defaultForm);
+  const [parsedData, setParsedData] = useState<ParsedResume | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  // Default expiry: 90 days from now
+  const defaultExpiry = () => {
+    const d = new Date();
+    d.setDate(d.getDate() + 90);
+    return d.toISOString().split('T')[0];
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const result = await uploadCandidate(file);
+
+      if (result.parsed) {
+        setParsedData(result.parsed);
+        setForm({
+          name: result.parsed.name || '',
+          email: result.parsed.email || '',
+          phone: result.parsed.phone || '',
+          linkedin_url: result.parsed.linkedin_url || '',
+          headline: result.parsed.headline || '',
+          skills: Array.isArray(result.parsed.skills) ? result.parsed.skills.join(', ') : '',
+          experience_years: String(result.parsed.experience_years || ''),
+          job_types: Array.isArray(result.parsed.job_types) ? result.parsed.job_types : [],
+          seniority: result.parsed.seniority || '',
+          location: result.parsed.location || '',
+          notes: '',
+          expires_at: defaultExpiry(),
+          resume_path: result.resume_path || '',
+          resume_text: result.resume_text || '',
+        });
+        toast.success('Resume parsed successfully — please review and save');
+      } else {
+        toast.error(result.error || 'Could not parse resume — please fill in manually');
+        setForm({ ...defaultForm, resume_path: result.resume_path, resume_text: result.resume_text, expires_at: defaultExpiry() });
+      }
+      setMode('upload');
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.name.trim()) {
+      toast.error('Name is required');
+      return;
+    }
+    setSaving(true);
+    try {
+      const candidate = await createCandidate({
+        name: form.name,
+        email: form.email || undefined,
+        phone: form.phone || undefined,
+        linkedin_url: form.linkedin_url || undefined,
+        headline: form.headline || undefined,
+        skills: form.skills || undefined,
+        experience_years: form.experience_years ? parseInt(form.experience_years) : undefined,
+        job_types: form.job_types.length > 0 ? form.job_types.join(', ') : undefined,
+        seniority: form.seniority || undefined,
+        location: form.location || undefined,
+        notes: form.notes || undefined,
+        expires_at: form.expires_at || undefined,
+        resume_path: form.resume_path || undefined,
+        resume_text: form.resume_text || undefined,
+        source: parsedData ? 'pdf' : 'manual',
+      } as any);
+      toast.success('Candidate added');
+      onSuccess(candidate);
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const toggleJobType = (jt: string) => {
+    setForm((f) => ({
+      ...f,
+      job_types: f.job_types.includes(jt)
+        ? f.job_types.filter((x) => x !== jt)
+        : [...f.job_types, jt],
+    }));
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+          <h2 className="text-lg font-semibold text-slate-900">Add Candidate</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Mode Selection */}
+        {mode === 'choose' && (
+          <div className="flex-1 flex items-center justify-center p-8">
+            <div className="grid grid-cols-2 gap-6 w-full max-w-md">
+              <button
+                onClick={() => fileRef.current?.click()}
+                disabled={uploading}
+                className="flex flex-col items-center gap-3 p-6 border-2 border-dashed border-slate-200 rounded-xl hover:border-indigo-400 hover:bg-indigo-50 transition-colors group"
+              >
+                <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center group-hover:bg-indigo-200">
+                  <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                </div>
+                <div className="text-center">
+                  <div className="font-medium text-slate-900 text-sm">Upload PDF</div>
+                  <div className="text-slate-500 text-xs mt-1">AI parses resume</div>
+                </div>
+              </button>
+
+              <button
+                onClick={() => { setForm({ ...defaultForm, expires_at: defaultExpiry() }); setMode('manual'); }}
+                className="flex flex-col items-center gap-3 p-6 border-2 border-dashed border-slate-200 rounded-xl hover:border-indigo-400 hover:bg-indigo-50 transition-colors group"
+              >
+                <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center group-hover:bg-indigo-100">
+                  <svg className="w-6 h-6 text-slate-600 group-hover:text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </div>
+                <div className="text-center">
+                  <div className="font-medium text-slate-900 text-sm">Manual Entry</div>
+                  <div className="text-slate-500 text-xs mt-1">Fill in details</div>
+                </div>
+              </button>
+            </div>
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".pdf"
+              className="hidden"
+              onChange={handleFileUpload}
+            />
+            {uploading && (
+              <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-xl">
+                <div className="text-center">
+                  <div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                  <p className="text-sm text-slate-600">Parsing resume with AI...</p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Form (both upload review and manual) */}
+        {(mode === 'upload' || mode === 'manual') && (
+          <form onSubmit={handleSubmit} className="flex-1 overflow-auto p-6 space-y-4">
+            {parsedData && (
+              <div className="flex items-center gap-2 text-green-700 bg-green-50 px-3 py-2 rounded-lg text-sm">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                Resume parsed by AI — please review the fields below
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="label">Full Name *</label>
+                <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="input" placeholder="Jane Smith" required />
+              </div>
+              <div>
+                <label className="label">Email</label>
+                <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="input" placeholder="jane@example.com" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="label">Phone</label>
+                <input type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="input" placeholder="+1 555 000 0000" />
+              </div>
+              <div>
+                <label className="label">LinkedIn URL</label>
+                <input type="url" value={form.linkedin_url} onChange={(e) => setForm({ ...form, linkedin_url: e.target.value })} className="input" placeholder="https://linkedin.com/in/..." />
+              </div>
+            </div>
+
+            <div>
+              <label className="label">Headline</label>
+              <input type="text" value={form.headline} onChange={(e) => setForm({ ...form, headline: e.target.value })} className="input" placeholder="Senior Software Engineer with 8 years in fintech" />
+            </div>
+
+            <div>
+              <label className="label">Skills (comma-separated)</label>
+              <input type="text" value={form.skills} onChange={(e) => setForm({ ...form, skills: e.target.value })} className="input" placeholder="React, TypeScript, Node.js, PostgreSQL" />
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="label">Experience (years)</label>
+                <input type="number" value={form.experience_years} onChange={(e) => setForm({ ...form, experience_years: e.target.value })} className="input" placeholder="5" min="0" max="50" />
+              </div>
+              <div>
+                <label className="label">Seniority</label>
+                <select value={form.seniority} onChange={(e) => setForm({ ...form, seniority: e.target.value })} className="input">
+                  <option value="">Select...</option>
+                  {SENIORITY_OPTIONS.map((s) => (
+                    <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="label">Location</label>
+                <input type="text" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} className="input" placeholder="San Francisco, CA" />
+              </div>
+            </div>
+
+            <div>
+              <label className="label">Job Types</label>
+              <div className="flex flex-wrap gap-2 mt-1">
+                {JOB_TYPE_OPTIONS.map((jt) => (
+                  <button
+                    key={jt}
+                    type="button"
+                    onClick={() => toggleJobType(jt)}
+                    className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                      form.job_types.includes(jt)
+                        ? 'bg-indigo-600 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {jt}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="label">Expires At</label>
+                <input type="date" value={form.expires_at} onChange={(e) => setForm({ ...form, expires_at: e.target.value })} className="input" />
+              </div>
+            </div>
+
+            <div>
+              <label className="label">Notes</label>
+              <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className="input resize-none" rows={2} placeholder="Any additional notes..." />
+            </div>
+
+            <div className="flex items-center justify-between pt-2">
+              <button
+                type="button"
+                onClick={() => { setMode('choose'); setParsedData(null); setForm(defaultForm); }}
+                className="btn-secondary"
+              >
+                Back
+              </button>
+              <div className="flex gap-3">
+                <button type="button" onClick={onClose} className="btn-secondary">Cancel</button>
+                <button type="submit" disabled={saving} className="btn-primary">
+                  {saving ? 'Saving...' : 'Add Candidate'}
+                </button>
+              </div>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}

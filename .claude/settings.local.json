@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npx tsx:*)",
+      "Bash(npx tsc:*)",
+      "Bash(curl -s http://localhost:3001/api/companies)",
+      "Bash(curl -s http://localhost:3001/api/candidates)",
+      "Bash(curl -s http://localhost:3001/api/opportunities)",
+      "Bash(curl -s http://localhost:3001/api/matches)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(pkill -f \"tsx watch server/index.ts\")",
+      "Bash(pkill -f \"vite\")",
+      "Bash(node -e \"const db = require\\(''better-sqlite3''\\)\\(''./data/vc-talent.db''\\); const tables = db.prepare\\(\"\"SELECT name FROM sqlite_master WHERE type=''table''\"\"\\).all\\(\\); console.log\\(tables\\);\")"
+    ]
+  }
+}
