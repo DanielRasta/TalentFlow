@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
-import { uploadCandidate, createCandidate, parseProfileText, getCandidateSources, Candidate, ParsedResume } from '../lib/api';
+import { uploadCandidate, createCandidate, updateCandidate, parseProfileText, getCandidateSources, Candidate, ParsedResume } from '../lib/api';
 import toast from 'react-hot-toast';
 
 interface CandidateUploadProps {
   onSuccess: (candidate: Candidate) => void;
   onClose: () => void;
+  candidate?: Candidate; // when set, component is in edit mode
 }
 
 const JOB_TYPE_OPTIONS = ['engineering', 'sales', 'marketing', 'design', 'product', 'operations', 'finance', 'data', 'hr', 'other'];
@@ -28,8 +29,9 @@ const defaultForm = {
   resume_text: '',
 };
 
-export default function CandidateUpload({ onSuccess, onClose }: CandidateUploadProps) {
-  const [mode, setMode] = useState<'choose' | 'upload' | 'manual' | 'linkedin'>('choose');
+export default function CandidateUpload({ onSuccess, onClose, candidate }: CandidateUploadProps) {
+  const isEdit = !!candidate;
+  const [mode, setMode] = useState<'choose' | 'upload' | 'manual' | 'linkedin'>(isEdit ? 'upload' : 'choose');
   const [linkedinUrl, setLinkedinUrl] = useState('');
   const [linkedinText, setLinkedinText] = useState('');
   const [parsingLinkedin, setParsingLinkedin] = useState(false);
@@ -40,7 +42,25 @@ export default function CandidateUpload({ onSuccess, onClose }: CandidateUploadP
   }, []);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState(defaultForm);
+  const [form, setForm] = useState(() =>
+    candidate ? {
+      name: candidate.name || '',
+      email: candidate.email || '',
+      phone: candidate.phone || '',
+      linkedin_url: candidate.linkedin_url || '',
+      headline: candidate.headline || '',
+      skills: candidate.skills || '',
+      experience_years: String(candidate.experience_years || ''),
+      job_types: candidate.job_types ? candidate.job_types.split(',').map(s => s.trim()).filter(Boolean) : [],
+      seniority: candidate.seniority || '',
+      location: candidate.location || '',
+      source: candidate.source || '',
+      notes: candidate.notes || '',
+      expires_at: candidate.expires_at || '',
+      resume_path: candidate.resume_path || '',
+      resume_text: candidate.resume_text || '',
+    } : defaultForm
+  );
   const [parsedData, setParsedData] = useState<ParsedResume | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -132,7 +152,7 @@ export default function CandidateUpload({ onSuccess, onClose }: CandidateUploadP
     }
     setSaving(true);
     try {
-      const candidate = await createCandidate({
+      const payload = {
         name: form.name,
         email: form.email || undefined,
         phone: form.phone || undefined,
@@ -148,9 +168,12 @@ export default function CandidateUpload({ onSuccess, onClose }: CandidateUploadP
         resume_path: form.resume_path || undefined,
         resume_text: form.resume_text || undefined,
         source: form.source || (parsedData ? 'pdf_upload' : 'manual'),
-      } as any);
-      toast.success('Candidate added');
-      onSuccess(candidate);
+      };
+      const saved = isEdit
+        ? await updateCandidate(candidate!.id, payload as any)
+        : await createCandidate(payload as any);
+      toast.success(isEdit ? 'Candidate updated' : 'Candidate added');
+      onSuccess(saved);
     } catch (err) {
       toast.error((err as Error).message);
     } finally {
@@ -172,7 +195,7 @@ export default function CandidateUpload({ onSuccess, onClose }: CandidateUploadP
       <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
-          <h2 className="text-lg font-semibold text-slate-900">Add Candidate</h2>
+          <h2 className="text-lg font-semibold text-slate-900">{isEdit ? 'Edit Candidate' : 'Add Candidate'}</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -413,17 +436,19 @@ export default function CandidateUpload({ onSuccess, onClose }: CandidateUploadP
             </div>
 
             <div className="flex items-center justify-between pt-2">
-              <button
-                type="button"
-                onClick={() => { setMode('choose'); setParsedData(null); setForm(defaultForm); setLinkedinUrl(''); setLinkedinText(''); }}
-                className="btn-secondary"
-              >
-                Back
-              </button>
+              {!isEdit && (
+                <button
+                  type="button"
+                  onClick={() => { setMode('choose'); setParsedData(null); setForm(defaultForm); setLinkedinUrl(''); setLinkedinText(''); }}
+                  className="btn-secondary"
+                >
+                  Back
+                </button>
+              )}
               <div className="flex gap-3">
                 <button type="button" onClick={onClose} className="btn-secondary">Cancel</button>
                 <button type="submit" disabled={saving} className="btn-primary">
-                  {saving ? 'Saving...' : 'Add Candidate'}
+                  {saving ? 'Saving...' : isEdit ? 'Save Changes' : 'Add Candidate'}
                 </button>
               </div>
             </div>

@@ -11,6 +11,7 @@ export default function Candidates() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<Tab>('active');
   const [showUpload, setShowUpload] = useState(false);
+  const [editCandidate, setEditCandidate] = useState<Candidate | undefined>(undefined);
   const [reactivatingId, setReactivatingId] = useState<number | null>(null);
   const [expandedId, setExpandedId] = useState<number | null>(null);
 
@@ -133,13 +134,10 @@ export default function Candidates() {
               <tr className="border-b border-slate-200 bg-slate-50">
                 <th className="table-header">Name</th>
                 <th className="table-header">Headline</th>
-                <th className="table-header">Skills</th>
-                <th className="table-header">Seniority</th>
                 <th className="table-header">Location</th>
                 <th className="table-header">Source</th>
-                <th className="table-header">Expires</th>
                 <th className="table-header">Status</th>
-                <th className="table-header">Actions</th>
+                <th className="table-header sticky right-0 bg-slate-50 shadow-[-1px_0_0_#e2e8f0]">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -153,7 +151,23 @@ export default function Candidates() {
                   >
                     <td className="table-cell">
                       <div>
-                        <div className="font-medium text-slate-900">{candidate.name}</div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-medium text-slate-900">{candidate.name}</span>
+                          {candidate.linkedin_url && (
+                            <a
+                              href={candidate.linkedin_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="Open LinkedIn profile"
+                              className="text-[#0A66C2] hover:opacity-75 shrink-0"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                              </svg>
+                            </a>
+                          )}
+                        </div>
                         {candidate.email && (
                           <div className="text-xs text-slate-500">{candidate.email}</div>
                         )}
@@ -164,45 +178,26 @@ export default function Candidates() {
                         {candidate.headline || '—'}
                       </p>
                     </td>
-                    <td className="table-cell">
-                      <div className="flex flex-wrap gap-1">
-                        {parseSkills(candidate.skills).map((skill) => (
-                          <span
-                            key={skill}
-                            className="inline-flex px-1.5 py-0.5 rounded text-xs bg-indigo-50 text-indigo-700 font-medium"
-                          >
-                            {skill}
-                          </span>
-                        ))}
-                        {(candidate.skills?.split(',').length || 0) > 5 && (
-                          <span className="text-xs text-slate-400">
-                            +{(candidate.skills?.split(',').length || 0) - 5}
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="table-cell capitalize text-slate-600">
-                      {candidate.seniority || '—'}
-                    </td>
                     <td className="table-cell text-slate-600">{candidate.location || '—'}</td>
                     <td className="table-cell">
                       <span className="text-xs text-slate-500">{candidate.source || '—'}</span>
                     </td>
                     <td className="table-cell">
-                      {candidate.expires_at
-                        ? new Date(candidate.expires_at).toLocaleDateString()
-                        : '—'}
-                    </td>
-                    <td className="table-cell">
                       <ExpiryBadge expiresAt={candidate.expires_at} isActive={candidate.is_active} />
                     </td>
-                    <td className="table-cell">
+                    <td className="table-cell sticky right-0 bg-white shadow-[-1px_0_0_#e2e8f0]">
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => setExpandedId(expandedId === candidate.id ? null : candidate.id)}
                           className="btn-secondary btn-sm"
                         >
                           {expandedId === candidate.id ? 'Hide' : 'View'}
+                        </button>
+                        <button
+                          onClick={() => setEditCandidate(candidate)}
+                          className="btn-secondary btn-sm"
+                        >
+                          Edit
                         </button>
                         {!candidate.is_active && (
                           <button
@@ -224,7 +219,7 @@ export default function Candidates() {
                   </tr>
                   {expandedId === candidate.id && (
                     <tr key={`${candidate.id}-expanded`} className="bg-slate-50">
-                      <td colSpan={9} className="px-6 py-4">
+                      <td colSpan={6} className="px-6 py-4">
                         <div className="grid grid-cols-3 gap-6 text-sm">
                           <div>
                             <div className="text-xs font-semibold text-slate-500 uppercase mb-1">Contact</div>
@@ -270,11 +265,22 @@ export default function Candidates() {
 
       {showUpload && (
         <CandidateUpload
-          onSuccess={(candidate) => {
-            setCandidates((prev) => [candidate, ...prev]);
+          onSuccess={(c) => {
+            setCandidates((prev) => [c, ...prev]);
             setShowUpload(false);
           }}
           onClose={() => setShowUpload(false)}
+        />
+      )}
+
+      {editCandidate && (
+        <CandidateUpload
+          candidate={editCandidate}
+          onSuccess={(updated) => {
+            setCandidates((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
+            setEditCandidate(undefined);
+          }}
+          onClose={() => setEditCandidate(undefined)}
         />
       )}
     </div>
