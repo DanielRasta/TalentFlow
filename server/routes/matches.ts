@@ -155,8 +155,9 @@ router.post('/:id/introduce', async (req: Request, res: Response) => {
     .prepare(
       `SELECT m.*,
         c.name as candidate_name, c.email as candidate_email,
-        c.linkedin_url as candidate_linkedin, c.headline as candidate_headline,
-        c.skills as candidate_skills, c.experience_years as candidate_experience_years,
+        c.phone as candidate_phone, c.linkedin_url as candidate_linkedin,
+        c.headline as candidate_headline, c.skills as candidate_skills,
+        c.experience_years as candidate_experience_years,
         o.title as opportunity_title, o.description as opportunity_description,
         comp.name as company_name, comp.contact_name as company_contact_name,
         comp.contact_email as company_contact_email
@@ -186,6 +187,7 @@ router.post('/:id/introduce', async (req: Request, res: Response) => {
       {
         name: match.candidate_name,
         email: match.candidate_email,
+        phone: match.candidate_phone,
         linkedin_url: match.candidate_linkedin,
         headline: match.candidate_headline,
         skills: match.candidate_skills,
