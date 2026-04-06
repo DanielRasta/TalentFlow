@@ -19,7 +19,7 @@ Everything stays private on your computer. No logins, no third-party databases, 
 - Review AI-scored matches with an explanation of why each is a fit
 - Generate a polished candidate suggestion email to the company in seconds
 - See which candidates are about to expire from your active pool (everyone gets a 90-day window by default)
-- Communicate with the app using an internal secured chat
+- Communicate with the app using an internal secured chat (powerd by CopilotKit)
 
 ---
 
