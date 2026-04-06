@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { getCandidates, deleteCandidate, reactivateCandidate, Candidate } from '../lib/api';
 import CandidateUpload from '../components/CandidateUpload';
@@ -142,9 +142,8 @@ export default function Candidates() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {candidates.map((candidate) => (
-                <>
+                <React.Fragment key={candidate.id}>
                   <tr
-                    key={candidate.id}
                     className={`hover:bg-slate-50 transition-colors ${
                       isExpiringSoon(candidate) ? 'bg-yellow-50/50' : ''
                     }`}
@@ -221,7 +220,7 @@ export default function Candidates() {
                     </td>
                   </tr>
                   {expandedId === candidate.id && (
-                    <tr key={`${candidate.id}-expanded`} className="bg-slate-50">
+                    <tr className="bg-slate-50">
                       <td colSpan={6} className="px-6 py-4">
                         <div className="grid grid-cols-3 gap-6 text-sm">
                           <div>
@@ -272,7 +271,7 @@ export default function Candidates() {
                       </td>
                     </tr>
                   )}
-                </>
+                </React.Fragment>
               ))}
             </tbody>
           </table>

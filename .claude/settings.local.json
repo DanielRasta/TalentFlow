@@ -19,7 +19,27 @@
       "Bash(curl -s \"http://localhost:5173/api/candidates?status=active\")",
       "Bash(python3 -c \"import json,sys; [print\\(c[''''name''''], c[''''is_executive''''], c[''''seniority'''']\\) for c in json.load\\(sys.stdin\\)]\")",
       "Bash(sqlite3 data/vc-talent.db \"SELECT id, name, seniority, is_executive FROM candidates;\")",
-      "Bash(sqlite3 data/vc-talent.db \"UPDATE candidates SET is_executive = 0 WHERE seniority NOT IN \\(''vp'', ''c-level''\\) AND is_executive = 1; SELECT id, name, seniority, is_executive FROM candidates;\")"
+      "Bash(sqlite3 data/vc-talent.db \"UPDATE candidates SET is_executive = 0 WHERE seniority NOT IN \\(''vp'', ''c-level''\\) AND is_executive = 1; SELECT id, name, seniority, is_executive FROM candidates;\")",
+      "WebFetch(domain:docs.copilotkit.ai)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:deepwiki.com)",
+      "WebFetch(domain:www.mintlify.com)",
+      "WebFetch(domain:dev.to)",
+      "Bash(export PATH=$PATH:/opt/homebrew/bin)",
+      "Bash(curl -s -X POST http://localhost:3001/api/copilotkit -H \"Content-Type: application/json\" -d '{\"\"\"\"test\"\"\"\": true}')",
+      "Bash(curl -s -X POST http://localhost:3001/api/copilotkit -H \"Content-Type: application/json\" -d '{}')",
+      "Bash(curl -sv http://localhost:3001/api/copilotkit)",
+      "Bash(curl -sv \"http://localhost:3001/api/copilotkit?method=info\")",
+      "Bash(curl -sv \"http://localhost:3001/api/copilotkit/info\")",
+      "Bash(find /Users/daniel/talent_match -path */node_modules/@copilotkit/runtime -maxdepth 5)",
+      "Bash(curl -s -X POST http://localhost:3001/api/copilotkit -H \"Content-Type: application/json\" -d '{\"\"method\"\":\"\"info\"\"}')",
+      "Bash(curl -s http://localhost:3001/api/health)",
+      "Bash(curl -s http://localhost:5173/)",
+      "Bash(curl -s -X POST http://localhost:5173/api/copilotkit -H \"Content-Type: application/json\" -d '{\"\"method\"\":\"\"info\"\"}')",
+      "Bash(curl -s -X POST http://localhost:3001/api/copilotkit -H \"Content-Type: application/json\" -d '{\"\"\"\"method\"\"\"\":\"\"\"\"agent/run\"\"\"\",\"\"\"\"params\"\"\"\":{\"\"\"\"agentId\"\"\"\":\"\"\"\"default\"\"\"\"},\"\"\"\"body\"\"\"\":{\"\"\"\"threadId\"\"\"\":\"\"\"\"test\"\"\"\",\"\"\"\"runId\"\"\"\":\"\"\"\"test\"\"\"\",\"\"\"\"messages\"\"\"\":[{\"\"\"\"role\"\"\"\":\"\"\"\"user\"\"\"\",\"\"\"\"content\"\"\"\":\"\"\"\"hello\"\"\"\"}],\"\"\"\"context\"\"\"\":{}}}')",
+      "Bash(python3 -m json.tool)",
+      "Bash(curl -s \"http://localhost:3001/api/matches?status=pending\")"
     ]
   }
 }

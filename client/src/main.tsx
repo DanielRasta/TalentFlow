@@ -2,11 +2,13 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import { CopilotKit } from '@copilotkit/react-core';
 import App from './App';
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
+    <CopilotKit runtimeUrl="/api/copilotkit">
     <BrowserRouter>
       <App />
       <Toaster
@@ -21,5 +23,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         }}
       />
     </BrowserRouter>
+    </CopilotKit>
   </React.StrictMode>
 );

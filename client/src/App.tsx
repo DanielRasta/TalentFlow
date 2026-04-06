@@ -5,6 +5,7 @@ import Companies from './pages/Companies';
 import Opportunities from './pages/Opportunities';
 import Candidates from './pages/Candidates';
 import Matches from './pages/Matches';
+import AiAssistant from './components/AiAssistant';
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
         <Route path="/candidates" element={<Candidates />} />
         <Route path="/matches" element={<Matches />} />
       </Routes>
+      <AiAssistant />
     </Layout>
   );
 }

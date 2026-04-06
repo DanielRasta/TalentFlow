@@ -5,6 +5,8 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+import { CopilotRuntime, AnthropicAdapter, copilotRuntimeNodeHttpEndpoint } from '@copilotkit/runtime';
+import Anthropic from '@anthropic-ai/sdk';
 import companiesRouter from './routes/companies';
 import opportunitiesRouter from './routes/opportunities';
 import candidatesRouter from './routes/candidates';
@@ -25,6 +27,22 @@ app.use(expiryMiddleware);
 
 // Serve uploaded files
 app.use('/uploads', express.static(path.resolve('./server/uploads')));
+
+// CopilotKit runtime endpoint
+const copilotServiceAdapter = new AnthropicAdapter({
+  anthropic: new Anthropic({
+    apiKey: process.env.ANTHROPIC_API_KEY,
+    baseURL: 'https://api.anthropic.com/v1',
+  }),
+  model: 'claude-sonnet-4-6',
+});
+const copilotHandler = copilotRuntimeNodeHttpEndpoint({
+  endpoint: '/api/copilotkit',
+  baseUrl: '/', // Express strips the mount prefix; Hono must route from /
+  runtime: new CopilotRuntime(),
+  serviceAdapter: copilotServiceAdapter,
+});
+app.use('/api/copilotkit', copilotHandler);
 
 // API Routes
 app.use('/api/companies', companiesRouter);
