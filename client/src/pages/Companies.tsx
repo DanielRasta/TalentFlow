@@ -41,7 +41,13 @@ export default function Companies() {
     setRefreshingId(id);
     try {
       const result = await refreshCompanyJobs(id);
-      toast.success(`Jobs refreshed: +${result.added} added, ${result.deactivated} deactivated`);
+      if (result.warning) {
+        toast.error(result.warning, { duration: 8000 });
+      } else if (result.added === 0 && result.deactivated === 0) {
+        toast.success('Jobs refreshed — no changes detected');
+      } else {
+        toast.success(`Jobs refreshed: +${result.added} added, ${result.deactivated} closed`);
+      }
       await load();
     } catch (err) {
       toast.error((err as Error).message);

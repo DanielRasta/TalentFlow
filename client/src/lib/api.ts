@@ -138,7 +138,7 @@ export const updateCompany = (id: number, data: Partial<Company>) =>
 export const deleteCompany = (id: number) =>
   request<{ success: boolean }>(`/api/companies/${id}`, { method: 'DELETE' });
 export const refreshCompanyJobs = (id: number) =>
-  request<{ success: boolean; added: number; deactivated: number }>(
+  request<{ success: boolean; added: number; deactivated: number; warning?: string }>(
     `/api/companies/${id}/refresh`,
     { method: 'POST' }
   );
@@ -168,6 +168,7 @@ export const toggleOpportunityActive = (id: number) =>
   request<Opportunity>(`/api/opportunities/${id}/toggle-active`, { method: 'PATCH' });
 
 // Candidates
+export const getCandidateSources = () => request<string[]>('/api/candidates/sources');
 export const getCandidates = (status?: 'active' | 'expired' | 'all') => {
   const query = status && status !== 'all' ? `?status=${status}` : '';
   return request<Candidate[]>(`/api/candidates${query}`);
@@ -185,6 +186,11 @@ export const uploadCandidate = (file: File) => {
     return res.json() as Promise<UploadResult>;
   });
 };
+export const parseProfileText = (text: string, linkedin_url?: string) =>
+  request<{ parsed: ParsedResume }>('/api/candidates/parse-text', {
+    method: 'POST',
+    body: JSON.stringify({ text, linkedin_url }),
+  });
 export const updateCandidate = (id: number, data: Partial<Candidate>) =>
   request<Candidate>(`/api/candidates/${id}`, { method: 'PUT', body: JSON.stringify(data) });
 export const deleteCandidate = (id: number) =>

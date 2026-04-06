@@ -136,6 +136,7 @@ export default function Candidates() {
                 <th className="table-header">Skills</th>
                 <th className="table-header">Seniority</th>
                 <th className="table-header">Location</th>
+                <th className="table-header">Source</th>
                 <th className="table-header">Expires</th>
                 <th className="table-header">Status</th>
                 <th className="table-header">Actions</th>
@@ -185,6 +186,9 @@ export default function Candidates() {
                     </td>
                     <td className="table-cell text-slate-600">{candidate.location || '—'}</td>
                     <td className="table-cell">
+                      <span className="text-xs text-slate-500">{candidate.source || '—'}</span>
+                    </td>
+                    <td className="table-cell">
                       {candidate.expires_at
                         ? new Date(candidate.expires_at).toLocaleDateString()
                         : '—'}
@@ -220,7 +224,7 @@ export default function Candidates() {
                   </tr>
                   {expandedId === candidate.id && (
                     <tr key={`${candidate.id}-expanded`} className="bg-slate-50">
-                      <td colSpan={8} className="px-6 py-4">
+                      <td colSpan={9} className="px-6 py-4">
                         <div className="grid grid-cols-3 gap-6 text-sm">
                           <div>
                             <div className="text-xs font-semibold text-slate-500 uppercase mb-1">Contact</div>

@@ -7,7 +7,14 @@ const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
-const MODEL = 'claude-sonnet-4-5-20251001';
+const MODEL = 'claude-sonnet-4-6';
+
+/** Strip markdown code fences that Claude sometimes wraps JSON in. */
+function extractJson(text: string): string {
+  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fenced) return fenced[1].trim();
+  return text.trim();
+}
 
 export interface ParsedResume {
   name: string;
@@ -68,7 +75,7 @@ Return ONLY valid JSON, no other text.`;
     throw new Error('Unexpected response type from AI');
   }
 
-  const jsonText = content.text.trim();
+  const jsonText = extractJson(content.text);
   return JSON.parse(jsonText) as ParsedResume;
 }
 
@@ -109,7 +116,7 @@ Return ONLY valid JSON: { "score": 0.0-1.0, "reasoning": "string" }`;
     throw new Error('Unexpected response type from AI');
   }
 
-  const jsonText = content.text.trim();
+  const jsonText = extractJson(content.text);
   return JSON.parse(jsonText) as MatchScore;
 }
 
@@ -205,6 +212,6 @@ Return ONLY valid JSON array.`;
     throw new Error('Unexpected response type from AI');
   }
 
-  const jsonText = content.text.trim();
+  const jsonText = extractJson(content.text);
   return JSON.parse(jsonText) as ParsedJob[];
 }

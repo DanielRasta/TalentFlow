@@ -75,8 +75,8 @@ export default function Layout({ children }: { children: ReactNode }) {
               </svg>
             </div>
             <div>
-              <div className="text-white font-semibold text-sm leading-tight">VC Talent</div>
-              <div className="text-slate-400 text-xs">Match Platform</div>
+              <div className="text-white font-semibold text-sm leading-tight">TalentFlow</div>
+              <div className="text-slate-400 text-xs">Powering talent across your portfolio</div>
             </div>
           </div>
         </div>
@@ -103,7 +103,7 @@ export default function Layout({ children }: { children: ReactNode }) {
 
         {/* Footer */}
         <div className="px-6 py-4 border-t border-slate-700">
-          <p className="text-slate-500 text-xs">AI-Powered Talent Matching</p>
+          <p className="text-slate-500 text-xs">Powering talent across your portfolio</p>
         </div>
       </aside>
 

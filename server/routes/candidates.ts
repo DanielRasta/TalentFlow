@@ -44,6 +44,14 @@ function getDefaultExpiryDate(): string {
   return date.toISOString().split('T')[0];
 }
 
+// GET /api/candidates/sources — distinct source values for autocomplete
+router.get('/sources', (req: Request, res: Response) => {
+  const rows = db.prepare(
+    `SELECT DISTINCT source FROM candidates WHERE source IS NOT NULL AND source != '' ORDER BY source ASC`
+  ).all() as { source: string }[];
+  return res.json(rows.map((r) => r.source));
+});
+
 // GET /api/candidates
 router.get('/', (req: Request, res: Response) => {
   const { status } = req.query;
@@ -135,6 +143,25 @@ router.post('/upload', upload.single('resume'), async (req: Request, res: Respon
     });
   } catch (err) {
     console.error('Error processing PDF:', err);
+    return res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+// POST /api/candidates/parse-text — parse any pasted text (LinkedIn profile, bio, etc.)
+router.post('/parse-text', async (req: Request, res: Response) => {
+  const { text, linkedin_url } = req.body;
+  if (!text || !text.trim()) {
+    return res.status(400).json({ error: 'text is required' });
+  }
+  try {
+    const parsed = await parseResume(text);
+    // Preserve the LinkedIn URL the user typed, even if not in the text
+    if (linkedin_url && !parsed.linkedin_url) {
+      parsed.linkedin_url = linkedin_url;
+    }
+    return res.json({ parsed });
+  } catch (err) {
+    console.error('Text parsing failed:', err);
     return res.status(500).json({ error: (err as Error).message });
   }
 });

@@ -11,7 +11,11 @@
       "mcp__Claude_Preview__preview_start",
       "Bash(pkill -f \"tsx watch server/index.ts\")",
       "Bash(pkill -f \"vite\")",
-      "Bash(node -e \"const db = require\\(''better-sqlite3''\\)\\(''./data/vc-talent.db''\\); const tables = db.prepare\\(\"\"SELECT name FROM sqlite_master WHERE type=''table''\"\"\\).all\\(\\); console.log\\(tables\\);\")"
+      "Bash(node -e \"const db = require\\(''better-sqlite3''\\)\\(''./data/vc-talent.db''\\); const tables = db.prepare\\(\"\"SELECT name FROM sqlite_master WHERE type=''table''\"\"\\).all\\(\\); console.log\\(tables\\);\")",
+      "Bash(node -e \":*)",
+      "Bash(/opt/homebrew/bin/node -e \":*)",
+      "Bash(curl -s -X POST http://localhost:3001/api/companies/3/refresh)",
+      "Bash(/opt/homebrew/bin/node -e \"process.stdin.resume\\(\\); let d=''''''''; process.stdin.on\\(''''data'''',c=>d+=c\\); process.stdin.on\\(''''end'''',\\(\\)=>console.log\\(JSON.parse\\(d\\)\\)\\)\")"
     ]
   }
 }
