@@ -108,4 +108,7 @@ db.exec(`
   );
 `);
 
+// Migrations for new columns
+try { db.exec(`ALTER TABLE candidates ADD COLUMN is_executive INTEGER DEFAULT 0`); } catch {}
+
 export default db;

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { uploadCandidate, createCandidate, updateCandidate, parseProfileText, getCandidateSources, Candidate, ParsedResume } from '../lib/api';
+import { uploadCandidate, uploadCandidateFile, createCandidate, updateCandidate, parseProfileText, getCandidateSources, Candidate, ParsedResume } from '../lib/api';
 import toast from 'react-hot-toast';
 
 interface CandidateUploadProps {
@@ -10,6 +10,8 @@ interface CandidateUploadProps {
 
 const JOB_TYPE_OPTIONS = ['engineering', 'sales', 'marketing', 'design', 'product', 'operations', 'finance', 'data', 'hr', 'other'];
 const SENIORITY_OPTIONS = ['junior', 'mid', 'senior', 'lead', 'director', 'vp', 'c-level'];
+
+const EXECUTIVE_SENIORITIES = ['vp', 'c-level'];
 
 const defaultForm = {
   name: '',
@@ -27,6 +29,7 @@ const defaultForm = {
   expires_at: '',
   resume_path: '',
   resume_text: '',
+  is_executive: false,
 };
 
 export default function CandidateUpload({ onSuccess, onClose, candidate }: CandidateUploadProps) {
@@ -41,6 +44,7 @@ export default function CandidateUpload({ onSuccess, onClose, candidate }: Candi
     getCandidateSources().then(setHistoricalSources).catch(() => {});
   }, []);
   const [uploading, setUploading] = useState(false);
+  const [cvUploading, setCvUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(() =>
     candidate ? {
@@ -55,6 +59,7 @@ export default function CandidateUpload({ onSuccess, onClose, candidate }: Candi
       seniority: candidate.seniority || '',
       location: candidate.location || '',
       source: candidate.source || '',
+      is_executive: !!candidate.is_executive,
       notes: candidate.notes || '',
       expires_at: candidate.expires_at || '',
       resume_path: candidate.resume_path || '',
@@ -63,6 +68,28 @@ export default function CandidateUpload({ onSuccess, onClose, candidate }: Candi
   );
   const [parsedData, setParsedData] = useState<ParsedResume | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const cvFileRef = useRef<HTMLInputElement>(null);
+
+  const cvFilename = (resumePath: string | null | undefined) => {
+    if (!resumePath) return null;
+    return resumePath.split('/').pop() || null;
+  };
+
+  const handleCvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setCvUploading(true);
+    try {
+      const result = await uploadCandidateFile(file);
+      setForm((f) => ({ ...f, resume_path: result.resume_path }));
+      toast.success('CV uploaded');
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setCvUploading(false);
+      if (cvFileRef.current) cvFileRef.current.value = '';
+    }
+  };
 
   // Default expiry: 90 days from now
   const defaultExpiry = () => {
@@ -96,6 +123,8 @@ export default function CandidateUpload({ onSuccess, onClose, candidate }: Candi
           expires_at: defaultExpiry(),
           resume_path: result.resume_path || '',
           resume_text: result.resume_text || '',
+          source: '',
+          is_executive: EXECUTIVE_SENIORITIES.includes((result.parsed.seniority || '').toLowerCase()),
         });
         toast.success('Resume parsed successfully — please review and save');
       } else {
@@ -134,6 +163,8 @@ export default function CandidateUpload({ onSuccess, onClose, candidate }: Candi
         expires_at: defaultExpiry(),
         resume_path: '',
         resume_text: linkedinText,
+        source: '',
+        is_executive: EXECUTIVE_SENIORITIES.includes((result.parsed.seniority || '').toLowerCase()),
       });
       setMode('upload');
       toast.success('Profile parsed — please review and save');
@@ -168,6 +199,7 @@ export default function CandidateUpload({ onSuccess, onClose, candidate }: Candi
         resume_path: form.resume_path || undefined,
         resume_text: form.resume_text || undefined,
         source: form.source || (parsedData ? 'pdf_upload' : 'manual'),
+        is_executive: form.is_executive ? 1 : 0,
       };
       const saved = isEdit
         ? await updateCandidate(candidate!.id, payload as any)
@@ -375,7 +407,14 @@ export default function CandidateUpload({ onSuccess, onClose, candidate }: Candi
               </div>
               <div>
                 <label className="label">Seniority</label>
-                <select value={form.seniority} onChange={(e) => setForm({ ...form, seniority: e.target.value })} className="input">
+                <select
+                  value={form.seniority}
+                  onChange={(e) => {
+                    const s = e.target.value;
+                    setForm({ ...form, seniority: s, is_executive: EXECUTIVE_SENIORITIES.includes(s.toLowerCase()) });
+                  }}
+                  className="input"
+                >
                   <option value="">Select...</option>
                   {SENIORITY_OPTIONS.map((s) => (
                     <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
@@ -386,6 +425,19 @@ export default function CandidateUpload({ onSuccess, onClose, candidate }: Candi
                 <label className="label">Location</label>
                 <input type="text" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} className="input" placeholder="San Francisco, CA" />
               </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="is_executive"
+                checked={form.is_executive}
+                onChange={(e) => setForm({ ...form, is_executive: e.target.checked })}
+                className="w-4 h-4 accent-indigo-600"
+              />
+              <label htmlFor="is_executive" className="text-sm font-medium text-slate-700 cursor-pointer select-none">
+                👔 Executive (VP / C-Level)
+              </label>
             </div>
 
             <div>
@@ -428,6 +480,41 @@ export default function CandidateUpload({ onSuccess, onClose, candidate }: Candi
               <datalist id="source-suggestions">
                 {historicalSources.map((s) => <option key={s} value={s} />)}
               </datalist>
+            </div>
+
+            <div>
+              <label className="label">CV / Resume (PDF)</label>
+              <div className="flex items-center gap-3">
+                {form.resume_path ? (
+                  <div className="flex items-center gap-2 flex-1 px-3 py-2 bg-green-50 border border-green-200 rounded-lg text-sm text-green-800">
+                    <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span className="truncate">{cvFilename(form.resume_path)}</span>
+                    <button
+                      type="button"
+                      onClick={() => setForm({ ...form, resume_path: '' })}
+                      className="ml-auto text-green-600 hover:text-red-500 shrink-0"
+                      title="Remove CV"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                ) : (
+                  <span className="text-sm text-slate-400 flex-1">No CV attached</span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => cvFileRef.current?.click()}
+                  disabled={cvUploading}
+                  className="btn-secondary btn-sm shrink-0"
+                >
+                  {cvUploading ? 'Uploading...' : form.resume_path ? 'Replace' : 'Attach PDF'}
+                </button>
+              </div>
+              <input ref={cvFileRef} type="file" accept=".pdf" className="hidden" onChange={handleCvUpload} />
             </div>
 
             <div>

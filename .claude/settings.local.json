@@ -15,7 +15,8 @@
       "Bash(node -e \":*)",
       "Bash(/opt/homebrew/bin/node -e \":*)",
       "Bash(curl -s -X POST http://localhost:3001/api/companies/3/refresh)",
-      "Bash(/opt/homebrew/bin/node -e \"process.stdin.resume\\(\\); let d=''''''''; process.stdin.on\\(''''data'''',c=>d+=c\\); process.stdin.on\\(''''end'''',\\(\\)=>console.log\\(JSON.parse\\(d\\)\\)\\)\")"
+      "Bash(/opt/homebrew/bin/node -e \"process.stdin.resume\\(\\); let d=''''''''; process.stdin.on\\(''''data'''',c=>d+=c\\); process.stdin.on\\(''''end'''',\\(\\)=>console.log\\(JSON.parse\\(d\\)\\)\\)\")",
+      "Bash(curl -s \"http://localhost:5173/api/candidates?status=active\")"
     ]
   }
 }

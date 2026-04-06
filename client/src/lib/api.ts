@@ -51,6 +51,7 @@ export interface Candidate {
   source: string;
   expires_at: string | null;
   is_active: number;
+  is_executive: number;
   created_at: string;
   updated_at: string;
 }
@@ -184,6 +185,17 @@ export const uploadCandidate = (file: File) => {
       throw new Error(err.error || `HTTP ${res.status}`);
     }
     return res.json() as Promise<UploadResult>;
+  });
+};
+export const uploadCandidateFile = (file: File) => {
+  const formData = new FormData();
+  formData.append('resume', file);
+  return fetch('/api/candidates/upload-file', { method: 'POST', body: formData }).then(async (res) => {
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: res.statusText }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return res.json() as Promise<{ resume_path: string }>;
   });
 };
 export const parseProfileText = (text: string, linkedin_url?: string) =>

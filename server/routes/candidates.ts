@@ -75,7 +75,7 @@ router.get('/', (req: Request, res: Response) => {
 router.post('/', (req: Request, res: Response) => {
   const {
     name, email, phone, linkedin_url, headline, skills, experience_years,
-    job_types, seniority, location, notes, source, expires_at
+    job_types, seniority, location, notes, source, expires_at, is_executive
   } = req.body;
 
   if (!name) {
@@ -87,8 +87,8 @@ router.post('/', (req: Request, res: Response) => {
   const result = db
     .prepare(
       `INSERT INTO candidates (name, email, phone, linkedin_url, headline, skills, experience_years,
-        job_types, seniority, location, notes, source, expires_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        job_types, seniority, location, notes, source, expires_at, is_executive)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .run(
       name,
@@ -103,7 +103,8 @@ router.post('/', (req: Request, res: Response) => {
       location || null,
       notes || null,
       source || 'manual',
-      expiresAt
+      expiresAt,
+      is_executive ? 1 : 0
     );
 
   const candidate = db.prepare('SELECT * FROM candidates WHERE id = ?').get(result.lastInsertRowid);
@@ -166,24 +167,39 @@ router.post('/parse-text', async (req: Request, res: Response) => {
   }
 });
 
+// POST /api/candidates/upload-file — store a CV file without AI parsing
+router.post('/upload-file', upload.single('resume'), (req: Request, res: Response) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file uploaded' });
+  }
+  return res.json({ resume_path: req.file.path });
+});
+
 // PUT /api/candidates/:id
 router.put('/:id', (req: Request, res: Response) => {
   const { id } = req.params;
   const {
     name, email, phone, linkedin_url, resume_path, resume_text, headline, skills,
-    experience_years, job_types, seniority, location, notes, source, expires_at, is_active
+    experience_years, job_types, seniority, location, notes, source, expires_at, is_active, is_executive
   } = req.body;
 
-  const existing = db.prepare('SELECT id FROM candidates WHERE id = ?').get(id);
+  const existing = db.prepare('SELECT id, resume_path FROM candidates WHERE id = ?').get(id) as { id: number; resume_path: string | null } | undefined;
   if (!existing) {
     return res.status(404).json({ error: 'Candidate not found' });
+  }
+
+  // Delete old CV file if it's being replaced
+  if (resume_path && existing.resume_path && existing.resume_path !== resume_path) {
+    if (fs.existsSync(existing.resume_path)) {
+      fs.unlinkSync(existing.resume_path);
+    }
   }
 
   db.prepare(
     `UPDATE candidates
      SET name = ?, email = ?, phone = ?, linkedin_url = ?, resume_path = ?, resume_text = ?,
          headline = ?, skills = ?, experience_years = ?, job_types = ?, seniority = ?,
-         location = ?, notes = ?, source = ?, expires_at = ?, is_active = ?,
+         location = ?, notes = ?, source = ?, expires_at = ?, is_active = ?, is_executive = ?,
          updated_at = datetime('now')
      WHERE id = ?`
   ).run(
@@ -203,6 +219,7 @@ router.put('/:id', (req: Request, res: Response) => {
     source || 'manual',
     expires_at || null,
     is_active !== undefined ? (is_active ? 1 : 0) : 1,
+    is_executive ? 1 : 0,
     id
   );
 
