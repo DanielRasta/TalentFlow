@@ -13,12 +13,13 @@ This app changes that. You build a private list of candidates (upload their resu
 Everything stays private on your computer. No logins, no third-party databases, no data sharing.
 
 **What you can do:**
-- Add candidates from your network (upload a PDF resume — AI reads it for you)
+- Add candidates from your network (upload a PDF resume or paste linkedin profile — AI analyze it for you)
 - Track open roles at each portfolio company (paste a job description or let the app scrape the careers page)
 - Run AI matching across all candidates × all open roles with one click
 - Review AI-scored matches with an explanation of why each is a fit
 - Generate a polished candidate suggestion email to the company in seconds
 - See which candidates are about to expire from your active pool (everyone gets a 90-day window by default)
+- Communicate with the app using an internal secured chat
 
 ---
 
@@ -51,7 +52,7 @@ This app uses Claude AI for matching and email drafting. You need an API key (li
 5. Copy the key — it starts with `sk-ant-...`
 6. **Save it somewhere safe.** You won't be able to see it again after closing that page.
 
-> **Note:** The Anthropic API is a paid service billed by usage. Typical usage for this app (matching 20 candidates against 30 roles) costs well under $1.
+> **Note:** The Anthropic API is a paid service billed by usage!
 
 ---
 
@@ -67,7 +68,7 @@ git clone https://github.com/your-username/vc-talent-match.git
 cd vc-talent-match
 ```
 
-Or download the ZIP from GitHub, unzip it, and open Terminal in that folder.
+Or download the ZIP from GitHub, unzip it, and open Terminal directed to that folder.
 
 ### Step 2 — Install dependencies
 
@@ -87,7 +88,7 @@ In Terminal:
 cp .env.example .env
 ```
 
-Now open the `.env` file in any text editor (TextEdit on Mac works fine) and replace the placeholder with your real key:
+Now open the `.env` file in any text editor and replace the placeholder with your real key:
 
 ```
 ANTHROPIC_API_KEY=sk-ant-your-actual-key-here
@@ -117,20 +118,22 @@ The app will be running there. It looks and works like a normal website — just
 
 To stop the app, go back to Terminal and press `Control + C`.
 
+If you want to take the extra mile, you can also host it as a service on your device or ship it to the cloud. I decided not to provide it as the app is not secured nor compliant by design and should be accessed with intention.
+
 ---
 
 ## Quick Start Guide
 
 **First time setup:**
 1. Go to **Companies** → add your portfolio companies (name, website, hiring contact email)
-2. For each company, click **"Refresh Jobs"** to auto-fetch their open roles, or add roles manually
-3. Go to **Candidates** → add people from your network (upload a PDF resume or fill in manually)
+2. For each company, click **"Refresh Jobs"** to auto-fetch their open roles, add roles manually, or in a batch.
+3. Go to **Candidates** → add people from your network (upload a PDF resume, paste LinkedIn content, or fill in manually)
 4. Go to **Matches** → click **"Run Matching"** — Claude scores every candidate against every open role
 5. Review the matches, dismiss weak ones, and click **"Suggest"** on the good ones to draft an email
 
 ---
 
-## Project Structure (for developers)
+## Project Structure (for the developers)
 
 ```
 vc-talent-match/
@@ -151,7 +154,7 @@ vc-talent-match/
 
 ## Privacy & Data
 
-All data — candidates, companies, match scores, emails — is stored in a single SQLite file on your computer (`data/vc-talent.db`). Nothing is sent to any server except the text you explicitly send to Claude for AI processing (resume text, job descriptions, match scoring). No candidate data ever leaves your machine in any other way.
+All data — candidates, companies, match scores, emails — is stored in a single SQLite file on your computer (`data/vc-talent.db`). Nothing is sent to any server except the text you explicitly send to Claude for AI processing (resume text, job descriptions, match scoring). No candidate data ever leaves your machine in any other way. Which is also part of the `.gitignore` file so it stays on your device.
 
 ---
 
