@@ -16,7 +16,10 @@
       "Bash(/opt/homebrew/bin/node -e \":*)",
       "Bash(curl -s -X POST http://localhost:3001/api/companies/3/refresh)",
       "Bash(/opt/homebrew/bin/node -e \"process.stdin.resume\\(\\); let d=''''''''; process.stdin.on\\(''''data'''',c=>d+=c\\); process.stdin.on\\(''''end'''',\\(\\)=>console.log\\(JSON.parse\\(d\\)\\)\\)\")",
-      "Bash(curl -s \"http://localhost:5173/api/candidates?status=active\")"
+      "Bash(curl -s \"http://localhost:5173/api/candidates?status=active\")",
+      "Bash(python3 -c \"import json,sys; [print\\(c[''''name''''], c[''''is_executive''''], c[''''seniority'''']\\) for c in json.load\\(sys.stdin\\)]\")",
+      "Bash(sqlite3 data/vc-talent.db \"SELECT id, name, seniority, is_executive FROM candidates;\")",
+      "Bash(sqlite3 data/vc-talent.db \"UPDATE candidates SET is_executive = 0 WHERE seniority NOT IN \\(''vp'', ''c-level''\\) AND is_executive = 1; SELECT id, name, seniority, is_executive FROM candidates;\")"
     ]
   }
 }
