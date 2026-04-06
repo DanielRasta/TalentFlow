@@ -167,6 +167,14 @@ export const deleteOpportunity = (id: number) =>
   request<{ success: boolean }>(`/api/opportunities/${id}`, { method: 'DELETE' });
 export const toggleOpportunityActive = (id: number) =>
   request<Opportunity>(`/api/opportunities/${id}/toggle-active`, { method: 'PATCH' });
+export const batchCreateOpportunities = (
+  company_id: number,
+  rows: Array<{ title: string; department?: string; job_type?: string; seniority?: string; location?: string; source_url?: string }>
+) =>
+  request<{ added: number; errors: string[] }>('/api/opportunities/batch', {
+    method: 'POST',
+    body: JSON.stringify({ company_id, rows }),
+  });
 
 // Candidates
 export const getCandidateSources = () => request<string[]>('/api/candidates/sources');

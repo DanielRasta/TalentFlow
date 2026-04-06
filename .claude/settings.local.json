@@ -39,7 +39,8 @@
       "Bash(curl -s -X POST http://localhost:5173/api/copilotkit -H \"Content-Type: application/json\" -d '{\"\"method\"\":\"\"info\"\"}')",
       "Bash(curl -s -X POST http://localhost:3001/api/copilotkit -H \"Content-Type: application/json\" -d '{\"\"\"\"method\"\"\"\":\"\"\"\"agent/run\"\"\"\",\"\"\"\"params\"\"\"\":{\"\"\"\"agentId\"\"\"\":\"\"\"\"default\"\"\"\"},\"\"\"\"body\"\"\"\":{\"\"\"\"threadId\"\"\"\":\"\"\"\"test\"\"\"\",\"\"\"\"runId\"\"\"\":\"\"\"\"test\"\"\"\",\"\"\"\"messages\"\"\"\":[{\"\"\"\"role\"\"\"\":\"\"\"\"user\"\"\"\",\"\"\"\"content\"\"\"\":\"\"\"\"hello\"\"\"\"}],\"\"\"\"context\"\"\"\":{}}}')",
       "Bash(python3 -m json.tool)",
-      "Bash(curl -s \"http://localhost:3001/api/matches?status=pending\")"
+      "Bash(curl -s \"http://localhost:3001/api/matches?status=pending\")",
+      "Bash(curl -s http://localhost:5173/opportunities)"
     ]
   }
 }
