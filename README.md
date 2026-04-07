@@ -64,8 +64,8 @@ You only need to do this once.
 
 If you have Git installed:
 ```
-git clone https://github.com/your-username/vc-talent-match.git
-cd vc-talent-match
+git clone https://github.com/DanielRasta/TalentFlow.git
+cd TalentFlow
 ```
 
 Or download the ZIP from GitHub, unzip it, and open Terminal directed to that folder.
