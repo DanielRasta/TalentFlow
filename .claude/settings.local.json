@@ -40,7 +40,15 @@
       "Bash(curl -s -X POST http://localhost:3001/api/copilotkit -H \"Content-Type: application/json\" -d '{\"\"\"\"method\"\"\"\":\"\"\"\"agent/run\"\"\"\",\"\"\"\"params\"\"\"\":{\"\"\"\"agentId\"\"\"\":\"\"\"\"default\"\"\"\"},\"\"\"\"body\"\"\"\":{\"\"\"\"threadId\"\"\"\":\"\"\"\"test\"\"\"\",\"\"\"\"runId\"\"\"\":\"\"\"\"test\"\"\"\",\"\"\"\"messages\"\"\"\":[{\"\"\"\"role\"\"\"\":\"\"\"\"user\"\"\"\",\"\"\"\"content\"\"\"\":\"\"\"\"hello\"\"\"\"}],\"\"\"\"context\"\"\"\":{}}}')",
       "Bash(python3 -m json.tool)",
       "Bash(curl -s \"http://localhost:3001/api/matches?status=pending\")",
-      "Bash(curl -s http://localhost:5173/opportunities)"
+      "Bash(curl -s http://localhost:5173/opportunities)",
+      "Bash(/usr/bin/which node:*)",
+      "Bash(/opt/homebrew/bin/node --version)",
+      "Read(//Users/daniel/.nvm/versions/node/**)",
+      "Bash(command -v npm)",
+      "Read(//opt/homebrew/Cellar/node@22/22.22.1_3/lib/node_modules/npm/bin/**)",
+      "Bash(chmod +x /Users/daniel/talent_match/scripts/start.sh /Users/daniel/talent_match/scripts/setup-service.sh /Users/daniel/talent_match/scripts/uninstall-service.sh)",
+      "Bash(bash /Users/daniel/talent_match/scripts/setup-service.sh)",
+      "Bash(launchctl list:*)"
     ]
   }
 }

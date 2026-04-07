@@ -1,4 +1,4 @@
-# VC Talent Match
+# TalentFlow
 
 An AI-powered tool that helps venture capitalists connect talented people in their network with open roles at portfolio companies — automatically.
 
@@ -118,7 +118,49 @@ The app will be running there. It looks and works like a normal website — just
 
 To stop the app, go back to Terminal and press `Control + C`.
 
+> **Port note:** The client is locked to port **5173**. If something else is already using that port when you run `npm run dev`, Vite will exit immediately with:
+> ```
+> Error: Port 5173 is already in use
+> ```
+> To fix it, find and stop the process using port 5173 (on Mac: `lsof -ti :5173 | xargs kill`), then try again.
+
 If you want to take the extra mile, you can also host it as a service on your device or ship it to the cloud. I decided not to provide it as the app is not secured nor compliant by design and should be accessed with intention.
+
+---
+
+## Running as a Background Service (macOS)
+
+Instead of manually running `npm run dev` every time, you can install TalentFlow as a **login service** that starts automatically when you log in and is always available at **http://localhost:5173**.
+
+### Install
+
+```bash
+bash scripts/setup-service.sh
+```
+
+That's it. The script:
+- Creates a macOS LaunchAgent (`~/Library/LaunchAgents/com.talentflow.app.plist`)
+- Starts the app immediately
+- Configures it to auto-start on every login
+- Writes logs to `~/Library/Logs/TalentFlow/`
+
+### Manage the service
+
+| Action | Command |
+|--------|---------|
+| Stop | `launchctl unload ~/Library/LaunchAgents/com.talentflow.app.plist` |
+| Start | `launchctl load ~/Library/LaunchAgents/com.talentflow.app.plist` |
+| Check status | `launchctl list \| grep talentflow` |
+| View logs | `tail -f ~/Library/Logs/TalentFlow/stdout.log` |
+| View errors | `tail -f ~/Library/Logs/TalentFlow/stderr.log` |
+
+### Uninstall
+
+```bash
+bash scripts/uninstall-service.sh
+```
+
+This stops the service and removes the plist. Your app files and database are untouched.
 
 ---
 
